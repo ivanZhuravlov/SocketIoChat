@@ -5,7 +5,11 @@ var config      = require('./config');
 var mongoose    = require('mongoose');
 var crypto      = require('crypto');
 var morgan      = require('morgan');
+var jwt         = require('jsonwebtoken');
 
+/*
+*   Config Stuff
+*/
 var port = config.port || 8080;
 mongoose.connect(config.database);
 
@@ -18,16 +22,21 @@ var User   = require('./app/models/user');
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-//Logging
+//Responses Logging
 app.use(morgan('dev'));
+
+//json web token secret
+app.set('jwtsecret', config.jwtsecret);
 
 //Lets use routes since maybe this file will get too large (or maybe not)
 //and in that case i'll be able to move the routes to another file
 var routes = express.Router(); 
 
-//TODO: disable this API
-routes.get('/', function(req, res) {
-    res.send('Server is up and running on ' + req.get('host') + '/');
+/*
+*   Status Api to check if server is running
+*/
+routes.get('/status', function(req, res) {
+    res.status(200).send('Server is up and running on ' + req.get('host') + '/');
 });
 
 /*
@@ -41,13 +50,12 @@ routes.post('/authenticate',function(req,res){
     var password = req.body.password;
     
     if(!name || !password){
-        res.status(404).json({ success: false, message: 'Missing user name or password.' });
+        return res.status(404).json({ success: false, message: 'Missing user name or password.' });
     }
 
     User.findOne({ name : name }, function(err, user) {
         if(err){
-            res.status(500).json({ success: false, message : 'Unexpected DB Error' });
-            return;
+            return res.status(500).json({ success: false, message : 'Unexpected DB Error' });
         }
 
         if(user){
@@ -55,7 +63,10 @@ routes.post('/authenticate',function(req,res){
             //TODO: use salt as well if salt is implemented
             var hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
             if(user.password == hashedPassword){
-                res.status(200).json({ success: true });
+                var jwtoken = jwt.sign({ name : name }, app.get('jwtsecret'), {
+                    expiresIn : "1440m"
+                });
+                res.status(200).json({ success: true , token : jwtoken });
                 //More on this later, token auth will be implemented
             } else {
                 res.status(400).json({ success: false, message : 'Incorrect password' });
@@ -78,28 +89,29 @@ routes.post('/users',function(req,res){
     var password = req.body.password;
 
     if(!name || !password){
-        res.status(404).json({ success: false, message: 'Missing user name or password.' });
-        return;
+        return res.status(404).json({ success: false, message: 'Missing user name or password.' });
     }
 
     User.findOne({ name : name }, function(err, user) {
         if(err){
-            res.status(500).json({ success: false, message : 'Unexpected DB Error' });
-            return;
+            return res.status(500).json({ success: false, message : 'Unexpected DB Error' });
         }
 
         if(!user){
             //User name is available
             var hashedPassword = crypto.createHash('sha256').update(password).digest('hex'); //TODO: add salt
             var newUser = new User({
-                name        : req.body.name,
+                name        : name,
                 password    : hashedPassword,
             });
             newUser.save(function(err) {
-                if (err){
+                if(err) {
                     throw err;
                 }
-                res.status(201).json({ success: true });
+                var jwtoken = jwt.sign({ name : name }, app.get('jwtsecret'), {
+                    expiresIn : "1440m"
+                });
+                res.status(201).json({ success: true , token : jwtoken });
             });
         } else {
             //User name is not available, already registered
@@ -109,12 +121,35 @@ routes.post('/users',function(req,res){
 });
 
 /*
+*   Token Filter
+*   Check if user sent a valid token on the request to so access to below routes
+*   Route order matters so above routes won't require token
+*/
+routes.use(function(req, res, next) {
+    var token = req.headers['x-access-token'];
+  
+    if(token) {
+        jwt.verify(token, app.get('jwtsecret'), function(err, decoded) {      
+            if(err){
+                return res.status(401).json({ success: false, message: 'Failed to validate token or token in expired' });    
+            } else { 
+                req.decoded = decoded;   
+                next();
+            }
+        });
+    } else {
+        return res.status(401).json({ success: false, message: 'Failed to validate token or token in expired' });
+    }
+});
+
+/*
 *   GET me
+*   Statuses: 200 Ok
 *   returns the current user according to credentials
 *   Also the client can user this to check it's token before making requests
 */ 
 routes.get('/me',function(req,res){
-    res.send('you called me');
+    res.status(200).json({ sucess: true , user : { name : req.decoded.name } } );
 });
 
 /*
