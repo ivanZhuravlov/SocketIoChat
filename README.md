@@ -1,12 +1,17 @@
 # nodechat
 Node.js chat implementation
 
+# Requirements
+* node (i'm using v0.10.31)
+* mongodb (i'm using 3.2.9)
+
 #Api Spec
-##GET /users/ 
-* List Of Connected Users
 ##POST /users/ 
 * Sign up user
-##GET /me
-* Get Current User
 ##POST /authenticate
 * Authenticate an user
+##GET /me
+* Get Current User
+##GET /users/ 
+* List Of Connected Users
+
