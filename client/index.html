@@ -14,12 +14,6 @@
         <script>
             System.import('app').catch(function(err){ console.error(err); });
         </script>
-        <script src="http://localhost:8080/socket.io/socket.io.js"></script>
-        <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
-        <script>
-            //If server is not listening on 8080 then change the port (on the url above as well)
-            var socket = io("http://localhost:8080");
-        </script>
     </head>
     <body>
         <chat-app>Loading...</chat-app>

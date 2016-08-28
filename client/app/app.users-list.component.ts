@@ -1,4 +1,5 @@
 import { Component, Input , OnInit } from '@angular/core';
+import * as io from 'socket.io-client'
 
 import { User } from './app.user';
 import { UserService } from './user.service';
@@ -25,6 +26,7 @@ export class UsersListComponent implements OnInit{
         });
     }
     ngOnInit() {
+      io.connect("http://localhost:8080");
       this.getUsers();
     }
 }
