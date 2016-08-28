@@ -2,7 +2,7 @@
 Node.js chat implementation
 
 # Requirements
-* node (i'm using v0.10.31)
+* node (i'm using v6.4.0)
 * mongodb (i'm using 3.2.9)
 
 #Api Spec

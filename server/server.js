@@ -6,6 +6,9 @@ var mongoose    = require('mongoose');
 var crypto      = require('crypto');
 var morgan      = require('morgan');
 var jwt         = require('jsonwebtoken');
+var http        = require('http').Server(app);
+var io          = require('socket.io')(http);
+var cors        = require('cors');
 
 /*
 *   Config Stuff
@@ -24,6 +27,9 @@ app.use(bodyParser.json());
 
 //Responses Logging
 app.use(morgan('dev'));
+
+//Adding cors for all routes since angular needs it
+app.use(cors());
 
 //json web token secret
 app.set('jwtsecret', config.jwtsecret);
@@ -161,4 +167,14 @@ routes.get('/users',function(req,res){
 });
 
 app.use('/',routes);
-app.listen(port);
+http.listen(port);
+
+io.sockets.on('connection',function(socket){
+    
+    io.emit('userConnected','');
+
+    socket.on('globalMessage', function(data){
+        var forwardData = { message : data.message , id : data.id };
+        io.emit('globalMessage', forwardData);
+    });
+});
