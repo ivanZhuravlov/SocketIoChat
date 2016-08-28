@@ -8,6 +8,8 @@ import { User } from './app.user';
 @Injectable()
 export class UserService {
 
+    public static token:string;
+
     private headers = new Headers({'Content-Type': 'application/json'});
     private options = new RequestOptions({ headers: this.headers });
 
@@ -16,9 +18,11 @@ export class UserService {
     constructor(private http: Http) { }
 
     getUsers(): Promise<User[]> {
-        return this.http.get(this.serverUrl+'/users')
+        var headers = new Headers({'x-access-token' : UserService.token});
+        var options = new RequestOptions({ headers: headers });
+        return this.http.get(this.serverUrl+'/users',options)
         .toPromise()
-        .then(response => response.json().data as User[])
+        .then( (response) => { return response.json().users as User[] })
         .catch(this.handleError);
     }
 
@@ -26,7 +30,7 @@ export class UserService {
         var body = { name : name , password : password };
         return this.http.post(this.serverUrl+'/authenticate',body, this.options)
         .toPromise()
-        .then(response =>response.json().token as String)
+        .then((response) => { UserService.token = response.json().token ; return response.json().token as String } )
         .catch(this.handleError);
     }
 
@@ -34,12 +38,14 @@ export class UserService {
         var body = { name : name , password : password };
         return this.http.post(this.serverUrl+'/users',body, this.options)
         .toPromise()
-        .then(response => response.json().token as String)
+        .then((response) => { UserService.token = response.json().token; ; return UserService.token as String } )
         .catch(this.handleError);
     }
 
     me( token ): Promise<User> {
-        return this.http.post(this.serverUrl+'/me',{ token: token }, this.options)
+        var headers = new Headers({'x-access-token' : UserService.token});
+        var options = new RequestOptions({ headers: headers });
+        return this.http.get(this.serverUrl+'/me',options)
         .toPromise()
         .then(response => response.json().data as User)
         .catch(this.handleError);

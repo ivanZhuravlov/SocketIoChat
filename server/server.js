@@ -152,7 +152,7 @@ routes.use(function(req, res, next) {
 *   GET me
 *   Statuses: 200 Ok
 *   returns the current user according to credentials
-*   Also the client can user this to check it's token before making requests
+*   Also the client can use this to check it's token before making requests
 */ 
 routes.get('/me',function(req,res){
     res.status(200).json({ sucess: true , user : { name : req.decoded.name } } );
@@ -163,7 +163,13 @@ routes.get('/me',function(req,res){
 *   returns all connected users
 */
 routes.get('/users',function(req,res){
-    res.send('you called GET users');
+    var users = [];
+    var namespace = io.of('/');
+    var connected = namespace.connected;
+    for( var id in connected ){
+        users.push({ id : connected[id].id , name : '' , token : ''});
+    }
+    res.status(200).json({sucess: true, users : users });
 });
 
 app.use('/',routes);

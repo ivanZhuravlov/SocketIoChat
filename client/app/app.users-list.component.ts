@@ -8,17 +8,23 @@ import { UserService } from './user.service';
   template: `
   <h2>Connected Users</h2>
   <ul>
-    <li *ngFor="let user of users" > {{user.name}} </li>
+    <li *ngFor="let user of users" > {{user.id}} </li>
   </ul>
   `,
   providers: [UserService]
 })
-export class UsersListComponent {
-    users : User[];
+export class UsersListComponent implements OnInit{
+    users : Object[];
 
     constructor(private userService: UserService) {}
 
     getUsers(): void {
-        this.userService.getUsers().then(users => this.users = users);
+        this.userService.getUsers().then( (users) => {
+          this.users = users;
+          console.log("users " +users);
+        });
+    }
+    ngOnInit() {
+      this.getUsers();
     }
 }
