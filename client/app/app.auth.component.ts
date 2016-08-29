@@ -19,8 +19,7 @@ import { UserService } from './user.service';
     <label for="newPassword">   Password    </label> <input [(ngModel)]="newPassword"  [ngModelOptions]="{standalone: true}" id="newPassword" type="password" required>
     <button type="submit">Sign In</button>
   </form>
-  `,
-  providers: [UserService]
+  `
 })
 export class AuthComponent {
 

@@ -167,7 +167,7 @@ routes.get('/users',function(req,res){
     var namespace = io.of('/');
     var connected = namespace.connected;
     for( var id in connected ){
-        users.push({ id : connected[id].id , name : '' , token : ''});
+        users.push({ id : connected[id].id , name : connected[id].id.replace('/', '').replace('#', '') , token : ''});
     }
     res.status(200).json({sucess: true, users : users });
 });
@@ -177,10 +177,14 @@ http.listen(port);
 
 io.sockets.on('connection',function(socket){
     
-    io.emit('userConnected','');
+    socket.on('disconnect',function(data){
+        io.emit('update',{});
+    });
 
     socket.on('globalMessage', function(data){
         var forwardData = { message : data.message , id : data.id };
         io.emit('globalMessage', forwardData);
     });
+
+    io.emit('update',{});
 });

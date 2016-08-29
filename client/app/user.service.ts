@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Headers, Http, RequestOptions } from '@angular/http';
+import * as io from 'socket.io-client'
 
 import 'rxjs/add/operator/toPromise';
 
@@ -8,7 +9,8 @@ import { User } from './app.user';
 @Injectable()
 export class UserService {
 
-    public static token:string;
+    public static token  :  string;
+    public static socket :  SocketIOClient.Socket;
 
     private headers = new Headers({'Content-Type': 'application/json'});
     private options = new RequestOptions({ headers: this.headers });
@@ -55,5 +57,5 @@ export class UserService {
          console.error('An error occurred', error);
          //TODO show error message to user 
          return Promise.reject(error.message || error);
-    } 
+    }
 }
