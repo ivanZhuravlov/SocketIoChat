@@ -6,16 +6,16 @@ Node.js chat implementation
 * mongodb (i'm using 3.2.9)
 
 # Server Start
-$ mongod 
-> use chat
-$ npm install
-// Above commands just the first time
-$ node server.js
+> * $ mongod 
+> * > use chat
+> * $ npm install
+* Above commands just the first time
+> * $ node server.js
 
 # Client Start
-$ npm install
-// Above command just the first time
-$ npm start
+> * $ npm install
+> * Above command just the first time
+> * $ npm start
 
 #Api Spec
 
