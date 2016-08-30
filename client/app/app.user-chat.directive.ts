@@ -2,6 +2,7 @@ import { Directive, ComponentFactoryResolver, ComponentFactory, ComponentRef } f
 
 import { ViewContainerRef } from '@angular/core';
 import { UserChatComponent } from './app.user-chat.component.ts';
+import { UserService } from './user.service.ts';
 
 @Directive({ 
   selector: '[chats]'
@@ -12,8 +13,8 @@ export class UserChatDirective {
         private componentFactoryResolver: ComponentFactoryResolver
     ) {}
 
-    createChat(userChatComponent: { new(): UserChatComponent } , id:String ): ComponentRef<UserChatComponent> {
-        this.viewContainer.clear();
+    createChat(userChatComponent: { new(userService:UserService): UserChatComponent } , id:String ): ComponentRef<UserChatComponent> {
+        //this.viewContainer.clear();
 
         let userChatFactory = 
           this.componentFactoryResolver.resolveComponentFactory(userChatComponent);

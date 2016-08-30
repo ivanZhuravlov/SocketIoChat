@@ -33,7 +33,7 @@ export class AuthComponent {
 
     }
 
-    logIn(){
+    private logIn(){
         this.userService.authenticate(this.name, this.password)
         .then( (token) =>{
             //Save token and go to chat
@@ -46,7 +46,7 @@ export class AuthComponent {
         });
     }
 
-    signUp(){
+    private signUp(){
         this.userService.signUp(this.newName, this.newPassword)
         .then( (token) => {
             //Save token and go to chat

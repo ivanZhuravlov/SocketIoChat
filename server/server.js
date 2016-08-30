@@ -133,7 +133,6 @@ routes.post('/users',function(req,res){
 */
 routes.use(function(req, res, next) {
     var token = req.headers['x-access-token'];
-  
     if(token) {
         jwt.verify(token, app.get('jwtsecret'), function(err, decoded) {      
             if(err){

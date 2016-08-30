@@ -15,7 +15,7 @@ import { UserChatDirective } from './app.user-chat.directive';
   <h2>Connected Users</h2>
   <h3>Click on user name to start chat</h3>
   <ul>
-    <li *ngFor="let user of users" ><a (click)="beginChat(user.name)"> {{user.name}} </a></li>
+    <li *ngFor="let user of users" ><button (click)="beginChat(user.name)"> {{user.name}} </button></li>
   </ul>
   <div chats></div>
   `
@@ -23,8 +23,9 @@ import { UserChatDirective } from './app.user-chat.directive';
 export class UsersListComponent implements OnInit{
     @ViewChild(UserChatDirective) chatAnchor: UserChatDirective;
     users :   Object[];
+    openChats : Object = {};
     
-    constructor(private userService: UserService, private router: Router ) {}
+    constructor(private userService: UserService) {}
 
     getUsers(): void {
         this.userService.getUsers().then( (users) => {
@@ -33,19 +34,24 @@ export class UsersListComponent implements OnInit{
     }
 
     ngOnInit() {
-      UserService.socket = io.connect("http://localhost:8080");
+      this.userService.setSocket(io.connect("http://localhost:8080"));
       let self:UsersListComponent = this;  
-      UserService.socket.on('update',function(data){
+      this.userService.getSocket().on('update',function(data){
         self.getUsers();
       });
       this.getUsers();
     }
 
     isNotCurrentUser(id:String){
-      return id != UserService.socket.id;
+      return id != this.userService.getSocket().id;
     }
 
-    beginChat(id:String){
+    beginChat(id:string){
+      if(this.openChats[id]){
+        return;
+      }
+      
+      this.openChats[id] = id;
       this.chatAnchor.createChat(UserChatComponent,id);
     }
 }

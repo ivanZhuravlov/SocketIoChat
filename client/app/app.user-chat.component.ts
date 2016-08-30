@@ -29,9 +29,11 @@ export class UserChatComponent implements OnInit{
     private message:    String;
     private messages:   String[] = [];
 
+    constructor(private userService: UserService ) {}
+
     ngOnInit() {
         let self:UserChatComponent = this;
-        UserService.socket.on('globalMessage',function(data){
+        this.userService.getSocket().on('globalMessage',function(data){
             self.messages.push(data.message);
         });
     }
@@ -41,8 +43,8 @@ export class UserChatComponent implements OnInit{
     }
 
     sendMessage(){
-        var message = { message : this.message, id : UserService.socket.id , token : UserService.token };
-        UserService.socket.emit('globalMessage',message);
+        var message = { message : this.message, id : this.userService.getSocket().id , token : this.userService.getToken() };
+        this.userService.getSocket().emit('globalMessage',message);
         this.message = '';
     }
 }

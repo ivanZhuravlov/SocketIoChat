@@ -9,8 +9,8 @@ import { User } from './app.user';
 @Injectable()
 export class UserService {
 
-    public static token  :  string;
-    public static socket :  SocketIOClient.Socket;
+    private token  :  string;
+    private socket :  SocketIOClient.Socket;
 
     private headers = new Headers({'Content-Type': 'application/json'});
     private options = new RequestOptions({ headers: this.headers });
@@ -20,7 +20,7 @@ export class UserService {
     constructor(private http: Http) { }
 
     getUsers(): Promise<User[]> {
-        var headers = new Headers({'x-access-token' : UserService.token});
+        var headers = new Headers({'x-access-token' : this.token});
         var options = new RequestOptions({ headers: headers });
         return this.http.get(this.serverUrl+'/users',options)
         .toPromise()
@@ -32,7 +32,7 @@ export class UserService {
         var body = { name : name , password : password };
         return this.http.post(this.serverUrl+'/authenticate',body, this.options)
         .toPromise()
-        .then((response) => { UserService.token = response.json().token ; return response.json().token as String } )
+        .then((response) => { this.token = response.json().token ; return response.json().token as String } )
         .catch(this.handleError);
     }
 
@@ -40,12 +40,12 @@ export class UserService {
         var body = { name : name , password : password };
         return this.http.post(this.serverUrl+'/users',body, this.options)
         .toPromise()
-        .then((response) => { UserService.token = response.json().token; ; return UserService.token as String } )
+        .then((response) => { this.token = response.json().token; ; return this.token as String } )
         .catch(this.handleError);
     }
 
     me( token ): Promise<User> {
-        var headers = new Headers({'x-access-token' : UserService.token});
+        var headers = new Headers({'x-access-token' : this.token});
         var options = new RequestOptions({ headers: headers });
         return this.http.get(this.serverUrl+'/me',options)
         .toPromise()
@@ -57,5 +57,21 @@ export class UserService {
          console.error('An error occurred', error);
          //TODO show error message to user 
          return Promise.reject(error.message || error);
+    }
+
+    public setToken(token:string){
+        this.token = token;
+    }
+
+    public setSocket(socket:SocketIOClient.Socket){
+        this.socket = socket;
+    }
+
+    public getToken(){
+        return this.token;
+    }
+
+    public getSocket(){
+        return this.socket;
     }
 }
