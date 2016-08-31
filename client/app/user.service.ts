@@ -11,6 +11,7 @@ export class UserService {
 
     private token  :  string;
     private socket :  SocketIOClient.Socket;
+    private name   :  String;
 
     private headers = new Headers({'Content-Type': 'application/json'});
     private options = new RequestOptions({ headers: this.headers });
@@ -73,5 +74,13 @@ export class UserService {
 
     public getSocket(){
         return this.socket;
+    }
+
+    public setName(name:String){
+        this.name = name;
+    }
+
+    public getName(){
+        return this.name;
     }
 }

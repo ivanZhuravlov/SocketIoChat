@@ -1,6 +1,6 @@
 import { Component, Input , OnInit, ViewChild } from '@angular/core';
 import * as io from 'socket.io-client'
-import { Router } from '@angular/router'
+import { Router, ActivatedRoute } from '@angular/router'
 
 import { User } from './app.user';
 import { UserService } from './user.service';
@@ -15,7 +15,7 @@ import { UserChatDirective } from './app.user-chat.directive';
   <h2>Connected Users</h2>
   <h3>Click on user name to start chat</h3>
   <ul>
-    <li *ngFor="let user of users" ><button (click)="beginChat(user.name)"> {{user.name}} </button></li>
+    <li *ngFor="let user of users" ><button (click)="beginChat(user.name,'')"> {{user.name}} </button></li>
   </ul>
   <div chats></div>
   `
@@ -25,33 +25,52 @@ export class UsersListComponent implements OnInit{
     users :   Object[];
     openChats : Object = {};
     
-    constructor(private userService: UserService) {}
+    constructor(private userService: UserService, private router: ActivatedRoute) {}
 
     getUsers(): void {
-        this.userService.getUsers().then( (users) => {
-          this.users = users;
-        });
+      let self:UsersListComponent = this;
+      this.userService.getUsers().then( (users) => {
+        //Filter the user's own name
+        let ownIndex:number = -1;
+        for(let u of users){
+          if(u.name == self.userService.getName()){
+            ownIndex = users.indexOf(u);
+          }
+        }
+        
+        if(ownIndex != -1){
+          users.splice(ownIndex,1);
+        }
+        
+        self.users = users;
+      });
     }
 
     ngOnInit() {
-      this.userService.setSocket(io.connect("http://localhost:8080"));
-      let self:UsersListComponent = this;  
-      this.userService.getSocket().on('update',function(data){
+      let self:UsersListComponent = this;
+      self.userService.setSocket(io.connect("http://localhost:8080"));
+      self.userService.getSocket().emit('register',{ name : self.userService.getName() })
+      self.userService.getSocket().on('globalMessage',function(data){
+        if(data.receiverName == self.userService.getName() && !self.openChats[data.receiverName]){
+          self.beginChat(data.senderName,data.message);
+        }
+      });
+      self.userService.getSocket().on('update',function(data){
         self.getUsers();
       });
-      this.getUsers();
+      self.getUsers();
     }
 
     isNotCurrentUser(id:String){
       return id != this.userService.getSocket().id;
     }
 
-    beginChat(id:string){
-      if(this.openChats[id]){
+    beginChat(receiverName:string,initialMessage:string){
+      if(this.openChats[receiverName]){
         return;
       }
       
-      this.openChats[id] = id;
-      this.chatAnchor.createChat(UserChatComponent,id);
+      this.openChats[receiverName] = receiverName;
+      this.chatAnchor.createChat(UserChatComponent,receiverName, initialMessage);
     }
 }

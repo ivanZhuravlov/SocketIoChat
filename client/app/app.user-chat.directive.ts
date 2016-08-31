@@ -13,7 +13,7 @@ export class UserChatDirective {
         private componentFactoryResolver: ComponentFactoryResolver
     ) {}
 
-    createChat(userChatComponent: { new(userService:UserService): UserChatComponent } , id:String ): ComponentRef<UserChatComponent> {
+    createChat(userChatComponent: { new(userService:UserService): UserChatComponent } , receiverName:String , initialMessage:string ): ComponentRef<UserChatComponent> {
         //this.viewContainer.clear();
 
         let userChatFactory = 
@@ -23,7 +23,8 @@ export class UserChatDirective {
         // userChatComponentRef.instance.close.subscribe(() => {
         //     userChatComponent.destroy();
         // });
-        userChatComponentRef.instance.setReceiverId(id);
+        userChatComponentRef.instance.setReceiverName(receiverName);
+        userChatComponentRef.instance.setInitialMessage(initialMessage);
 
         return userChatComponentRef;
     }

@@ -163,10 +163,13 @@ routes.get('/me',function(req,res){
 */
 routes.get('/users',function(req,res){
     var users = [];
-    var namespace = io.of('/');
-    var connected = namespace.connected;
-    for( var id in connected ){
-        users.push({ id : connected[id].id , name : connected[id].id.replace('/', '').replace('#', '') , token : ''});
+    
+    for (var key in connectedUsers) {
+        // skip loop if the property is from prototype
+        if (!connectedUsers.hasOwnProperty(key)){
+            continue;
+        }
+        users.push({ id : key , name : key , token : ''});
     }
     res.status(200).json({sucess: true, users : users });
 });
@@ -174,16 +177,26 @@ routes.get('/users',function(req,res){
 app.use('/',routes);
 http.listen(port);
 
+var connectedUsers = {}; //key: user name , value = socket
+var connectedSockets = {}; //key: socket , value = user name
+
 io.sockets.on('connection',function(socket){
-    
+    var s = socket;
+    socket.on('register',function(data){
+        connectedUsers[data.name] = socket;
+        connectedSockets[s.id] = data.name;
+        io.emit('update',{});
+    });
+
     socket.on('disconnect',function(data){
+        delete connectedUsers[connectedSockets[s.id]];
+        delete connectedSockets[s.id];
         io.emit('update',{});
     });
 
     socket.on('globalMessage', function(data){
-        var forwardData = { message : data.message , id : data.id };
-        io.emit('globalMessage', forwardData);
+        var forwardData = { message : data.message , id : data.id , senderName : data.senderName, receiverName : data.receiverName };
+        io.to(connectedUsers[data.receiverName].id).emit('globalMessage', forwardData);
+        io.to(connectedUsers[data.senderName].id).emit('globalMessage', forwardData);
     });
-
-    io.emit('update',{});
 });

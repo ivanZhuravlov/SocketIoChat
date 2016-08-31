@@ -38,6 +38,7 @@ export class AuthComponent {
         .then( (token) =>{
             //Save token and go to chat
             this.token = token;
+            this.userService.setName(this.name);
             this.router.navigate(['/users']);
         })
         .catch( function(err){
@@ -51,6 +52,7 @@ export class AuthComponent {
         .then( (token) => {
             //Save token and go to chat
             this.token = token;
+            this.userService.setName(this.newName);
             this.router.navigate(['/users']);
         })
         .catch(function(err){

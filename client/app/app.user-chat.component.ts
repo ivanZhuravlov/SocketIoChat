@@ -9,7 +9,7 @@ import { UserService } from './user.service';
   selector: 'ct',
   template: `
     <div>
-    <h2>{{receiverId}}</h2>
+    <h2>{{receiverName}}</h2>
     <form (ngSubmit)="sendMessage()">
         <ul>
             <li *ngFor="let item of messages">
@@ -24,26 +24,36 @@ import { UserService } from './user.service';
 })
 export class UserChatComponent implements OnInit{
 
-    private receiverId: String;
+    private receiverName: String;
     private sub:        any;
     private message:    String;
     private messages:   String[] = [];
+    private initialMessage:string;
 
     constructor(private userService: UserService ) {}
 
     ngOnInit() {
         let self:UserChatComponent = this;
         this.userService.getSocket().on('globalMessage',function(data){
-            self.messages.push(data.message);
+            if(self.receiverName == data.senderName || ( self.userService.getName() == data.senderName && self.receiverName == data.receiverName ) ){
+                self.messages.push(data.message);
+            }
         });
+        if(self.initialMessage != ''){
+            self.messages.push(self.initialMessage);
+        }
     }
 
-    public setReceiverId(id:String){
-        this.receiverId = id;
+    public setReceiverName(name:String){
+        this.receiverName = name;
+    }
+
+    public setInitialMessage(initialMessage:string){
+        this.initialMessage = initialMessage;
     }
 
     sendMessage(){
-        var message = { message : this.message, id : this.userService.getSocket().id , token : this.userService.getToken() };
+        var message = { message : this.message, id : this.userService.getSocket().id , token : this.userService.getToken(), receiverName : this.receiverName , senderName : this.userService.getName() };
         this.userService.getSocket().emit('globalMessage',message);
         this.message = '';
     }
