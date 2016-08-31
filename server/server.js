@@ -195,6 +195,20 @@ io.sockets.on('connection',function(socket){
     });
 
     socket.on('globalMessage', function(data){
+        
+        /*
+        *   Only authenticated users can send messages,
+        *   Before this, only authenticated users see the connected users lists
+        *   This is an extra check
+        */
+        jwt.verify(data.token, app.get('jwtsecret'), function(err, decoded) {      
+            if(err){
+                //TODO: let the client now that token is not provided or is invalid
+                //So the user can authenticate again or something
+                return;    
+            }
+        });
+
         var forwardData = { message : data.message , id : data.id , senderName : data.senderName, receiverName : data.receiverName };
         io.to(connectedUsers[data.receiverName].id).emit('globalMessage', forwardData);
         io.to(connectedUsers[data.senderName].id).emit('globalMessage', forwardData);
